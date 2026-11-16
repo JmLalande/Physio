@@ -34,6 +34,9 @@ const clock=(s,f)=>{s=Math.max(0,f(s));return Math.floor(s/60)+":"+String(s%60).
 const fmt=s=>clock(s,Math.round);
 const cdn=s=>clock(s,v=>Math.ceil(v-1e-6));
 const upn=s=>clock(s,Math.floor);
+/* A finished duration is minutes, never m:ss. "18:27" in big type reads as a
+   time of day. */
+const dur=s=>Math.max(1,Math.round(s/60))+" min";
 function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("on");
   clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("on"),2600);}
 
@@ -90,6 +93,7 @@ function renderToday(){
   $("streakN").textContent=n;
   $("streakN").classList.toggle("zero",n===0);
   $("streakL").innerHTML=(n===1?"jour":"jours")+"<br>de suite";
+  $("sStreakL").textContent=n===1?"jour":"jours";
 
   /* A count that can go down needs two numbers beside it that never do. */
   const total=daysDone();
@@ -126,25 +130,30 @@ function renderToday(){
   else ec.style.display="none";
 }
 
-/* Five weeks, oldest top left, today bottom right. Days before her first one are
-   left blank rather than counted as missed. */
+/* The last five weeks, one row per week, Sunday first like the calendar, today
+   in the bottom row. Days before her first one and days still to come stay
+   blank rather than read as missed. */
 function renderChain(){
-  const first=firstDay(), today=todayISO(), N=28, d=new Date();
-  d.setDate(d.getDate()-(N-1));
-  let h="";
-  for(let i=0;i<N;i++){
+  const first=firstDay(), today=todayISO(), d=new Date();
+  d.setDate(d.getDate()-d.getDay()-28);
+  let h="", done=0, seen=0;
+  for(let i=0;i<35;i++){
     const k=iso(d), s=SESSIONS[k];
     let c="";
-    if(s&&s.complete)c="done";
+    if(k>today)c="future";
+    else if(s&&s.complete)c="done";
     else if(counts(s))c="part";
     else if(!first||k<first)c="before";
     else if(k<today)c="miss";
     if(k===today)c+=" today";
+    if(k<=today&&first&&k>=first){seen++;if(counts(s))done++;}
     h+="<i class='"+c.trim()+"'></i>";
     d.setDate(d.getDate()+1);
   }
-  $("chain").innerHTML=h;
-  $("chain").style.display=first?"grid":"none";
+  const ch=$("chain");
+  ch.innerHTML=h;
+  ch.style.display=first?"grid":"none";
+  ch.setAttribute("aria-label",done+" jours faits sur les "+seen+" derniers");
 }
 
 function renderPlan(){
@@ -168,7 +177,9 @@ function renderHistory(){
     else if(!future&&first&&key>=first&&key<today)cls+=" miss";
     if(future)cls+=" future";
     if(key===today)cls+=" today";
-    h+="<div class='"+cls+"'"+(future?"":" data-edit='"+key+"' style='cursor:pointer'")+">"+d+"</div>";
+    const lbl=new Date(y,mo,d).toLocaleDateString("fr-CA",{weekday:"long",day:"numeric",month:"long"});
+    h+=future?"<div class='"+cls+"'>"+d+"</div>"
+      :"<button class='"+cls+"' data-edit='"+key+"' aria-label='"+lbl+"'>"+d+"</button>";
   }
   $("cal").innerHTML=h;
 
@@ -186,15 +197,20 @@ function renderHistory(){
     const st=s.startedAt?new Date(s.startedAt):null, t=st?st.getHours()+" h "+String(st.getMinutes()).padStart(2,"0"):"";
     const what=s.manual&&!(s.sets&&s.sets.length)?"Faite sans l'app"
       :plural(setCount(s.sets),"série","séries")+" sur "+TOTAL_SETS+(t?" · "+t:"");
-    return "<div class='stat' data-edit='"+s.date+"' style='cursor:pointer'><span>"+dt+
+    return "<div class='stat' role='button' tabindex='0' data-edit='"+s.date+"' style='cursor:pointer'><span>"+dt+
       "<br><span class='muted'>"+what+"</span></span>"+
-      "<span class='v mono'>"+(s.actualSec?fmt(s.actualSec):"")+"</span></div>";
+      "<span class='v mono'>"+(s.actualSec?dur(s.actualSec):"")+"</span></div>";
   }).join(""):"<p class='muted'>Rien encore.</p>";
 }
 /* One delegated listener instead of wiring every cell on every render. */
 document.addEventListener("click",e=>{
   const t=e.target.closest("[data-edit]");
   if(t)openEditor(t.dataset.edit);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&edDate)closeEditor();
+  const t=e.target.closest&&e.target.closest("div[data-edit]");
+  if(t&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openEditor(t.dataset.edit);}
 });
 
 /* ---------------------------------------------------------------- session */
@@ -302,6 +318,7 @@ function startSession(){
   $("log").classList.remove("on");
   $("sess").classList.add("on");
   sizeRing();render();keepAwake();
+  pushLayer("sess");
   if(!raf)raf=requestAnimationFrame(loop);
 }
 const plannedTotal=()=>PH.reduce((a,p)=>a+p.dur,0);
@@ -337,20 +354,32 @@ function render(){
     :(nextW?M[nextW.m].name+", "+setLbl(nextW):"Fin de la séance");
   const end=new Date(Date.now()+remaining()*1000);
   $("endAt").textContent=String(end.getHours()).padStart(2,"0")+":"+String(end.getMinutes()).padStart(2,"0");
-  const green=Object.keys(SESSIONS).length<4;
-  $("hint").firstChild.nodeValue=p.lead?"Touche l'écran pour commencer tout de suite · fin à "
-    :(green?(work?"Touche l'écran quand la série est finie · fin à ":"Touche l'écran pour repartir plus tôt · fin à "):"Fin à ");
+  /* Always on screen. The whole screen is the button, and a gesture that is
+     never named is one she forgets after a week off. */
+  $("hint").firstChild.nodeValue=p.lead?"Touche l'écran pour commencer tout de suite · fin vers "
+    :(work?"Touche l'écran quand la série est finie · fin vers ":"Touche l'écran pour repartir plus tôt · fin vers ");
   bar.style.strokeDashoffset=work?RLEN:RLEN*Math.min(1,Math.max(0,el/p.dur));
   $("logRest").textContent=cdn(Math.max(0,PH[idx].dur-el));
 }
+/* A knee or a towel can end a set. The log screen offers the way back, and
+   this is everything it needs to put the set back exactly where it was. */
+let undo=null;
 function endWork(){
   const p=PH[idx];
+  undo={idx,anchor,delta:el-p.dur};
   drift+=el-p.dur;
   pendingWork={m:p.m,set:p.set,sets:p.sets,def:p.def};
   idx++;el=0;anchor=Date.now();
   if(idx>=PH.length)finishing=true;else holding=true;
   openLog();tone(520,.14,.66);
   if(!finishing)render();
+}
+function undoEnd(){
+  if(!undo||!pendingWork)return;
+  idx=undo.idx;anchor=undo.anchor;drift-=undo.delta;
+  holding=false;finishing=false;pendingWork=null;sideVal=null;undo=null;
+  $("log").classList.remove("on");$("log").setAttribute("aria-hidden","true");
+  render();
 }
 function endRest(){
   const p=PH[idx];drift+=(el-p.dur);
@@ -398,7 +427,7 @@ function commitLog(){
   if(!pendingWork)return;
   const ts=Date.now();
   SIDES.forEach(sd=>logged.push({m:pendingWork.m,set:pendingWork.set,side:sd.k,reps:sideVal[sd.k].reps,ts}));
-  holding=false;pendingWork=null;sideVal=null;
+  holding=false;pendingWork=null;sideVal=null;undo=null;
   $("log").classList.remove("on");$("log").setAttribute("aria-hidden","true");
   tone(880,.12,.66);
   saveSession(false);
@@ -409,7 +438,7 @@ function finish(){
   done=true;
   const actual=CARRY+plannedTotal()+drift;
   $("doneview").classList.add("on");
-  $("doneTime").textContent=fmt(actual);
+  $("doneTime").textContent=dur(actual);
   saveSession(true,actual);
   const n=streak().n;
   $("sStreak").textContent=n;
@@ -431,13 +460,23 @@ async function saveSession(complete,actual){
 }
 /* Pausing and quitting are the same act: the sets are saved, the day already
    counts, and the only difference is whether she comes back. */
+function askQuit(){
+  const c=setCount(logged);
+  $("quitNote").textContent=c?plural(c,"série enregistrée","séries enregistrées")+(c===1?" est gardée":" sont gardées")+". Tu pourras reprendre depuis l'accueil."
+    :"Rien d'enregistré encore. Ta journée compte dès la première série.";
+  $("quit").classList.add("on");$("quit").setAttribute("aria-hidden","false");
+}
+function closeQuit(){$("quit").classList.remove("on");$("quit").setAttribute("aria-hidden","true");}
 function pauseSession(){
   const some=logged.length>0;
+  closeQuit();
   leaveSession();
   if(!done)toast(some?"En pause. Reprends depuis l'accueil.":"Séance abandonnée.");
 }
 function leaveSession(){
+  if(!$("sess").classList.contains("on"))return;
   $("sess").classList.remove("on");
+  popLayer();
   dropAwake();
   if(logged.length&&!done)saveSession(false);
   renderAll();
@@ -471,6 +510,7 @@ function openEditor(date){
   $("edDate").textContent=noon(date).toLocaleDateString("fr-CA",{weekday:"long",month:"long",day:"numeric"});
   renderEditor();
   $("editor").classList.add("on");
+  pushLayer("editor");
 }
 function renderEditor(){
   const s=SESSIONS[edDate], sets=(s&&s.sets)||[];
@@ -478,7 +518,10 @@ function renderEditor(){
   /* Marking a day by hand is for the day she did it and the phone was not
      there. It is offered only where nothing is logged, and today only once
      there is nothing to resume. */
-  $("edManual").style.display=counts(s)?"none":"block";
+  const partial=counts(s)&&!s.complete;
+  $("edManual").style.display=(!counts(s)||partial)?"block":"none";
+  $("edManual").textContent=partial?"Marquer comme complète":"Je l'ai faite sans l'app";
+  armDel(false);
   $("edDel").style.display=s?"block":"none";
   if(!sets.length){$("edList").innerHTML="";return;}
   $("edList").innerHTML=sets.map((x,i)=>{
@@ -505,18 +548,32 @@ async function persistEdit(){
   renderAll();
 }
 $("edManual").addEventListener("click",async()=>{
-  const prev=SESSIONS[edDate]||{date:edDate,sets:[]};
-  const rec=Object.assign(prev,{manual:true,complete:true});
+  const prev=SESSIONS[edDate];
+  const partial=counts(prev)&&!prev.complete;
+  const rec=partial?Object.assign(prev,{complete:true}):Object.assign(prev||{date:edDate,sets:[]},{manual:true,complete:true});
   SESSIONS[edDate]=rec;await put("sessions",rec);
-  closeEditor();renderAll();toast("Journée comptée");
+  closeEditor();renderAll();toast(partial?"Journée complète":"Journée comptée");
 });
+/* Deleting a whole day takes two taps on the same button, the second within
+   four seconds. The first one only says what the second will do. */
+let delArmed=null;
+function armDel(on){
+  clearTimeout(delArmed);delArmed=null;
+  $("edDel").textContent=on?"Touche encore pour effacer la journée":"Effacer cette journée";
+  if(on)delArmed=setTimeout(()=>armDel(false),4000);
+}
 $("edDel").addEventListener("click",async()=>{
-  if(!edDate||!confirm("Effacer tout ce qui est noté cette journée-là ?"))return;
+  if(!edDate)return;
+  if(!delArmed){armDel(true);return;}
+  armDel(false);
   delete SESSIONS[edDate];await del("sessions",edDate);
   closeEditor();renderAll();toast("Journée effacée");
 });
-function closeEditor(){$("editor").classList.remove("on");edDate=null;}
-$("edClose").addEventListener("click",closeEditor);
+function closeEditor(fromBack){
+  $("editor").classList.remove("on");edDate=null;armDel(false);
+  if(!fromBack)popLayer();
+}
+$("edClose").addEventListener("click",()=>closeEditor());
 $("editor").addEventListener("click",e=>{if(e.target.id==="editor")closeEditor();});
 
 /* ------------------------------------------------------------------- wire */
@@ -537,7 +594,27 @@ function setSound(on){
 }
 $("sndBtn").addEventListener("click",()=>setSound(!sound));
 $("sndToggle").addEventListener("click",()=>setSound(!sound));
-$("quitBtn").addEventListener("click",pauseSession);
+$("quitBtn").addEventListener("click",askQuit);
+$("quitStay").addEventListener("click",closeQuit);
+$("quitGo").addEventListener("click",pauseSession);
+$("logUndo").addEventListener("click",undoEnd);
+
+/* Android's back gesture. Each layer (session, editor) pushes a history entry
+   so back closes the layer instead of leaving the app and dropping the set in
+   progress. Closing a layer by its own button pops that entry quietly. */
+let layer=null, quietPop=false;
+function pushLayer(name){if(layer)return;layer=name;history.pushState({layer:name},"");}
+function popLayer(){if(!layer)return;layer=null;quietPop=true;history.back();}
+addEventListener("popstate",()=>{
+  if(quietPop){quietPop=false;return;}
+  const was=layer;layer=null;
+  if(was==="editor")closeEditor(true);
+  else if(was==="sess"){
+    if(done)leaveSession();
+    else if($("quit").classList.contains("on"))closeQuit(),pushLayer("sess");
+    else{askQuit();pushLayer("sess");}
+  }
+});
 $("doneBtn").addEventListener("click",leaveSession);
 $("startBtn").addEventListener("click",startSession);
 $("editToday").addEventListener("click",()=>openEditor(todayISO()));

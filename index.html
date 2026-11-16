@@ -2,7 +2,7 @@
 <html lang="fr-CA">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#08090A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,7 +20,7 @@
      like each other at a glance. */
   --bg:#2E0E22; --ink:#FFE6F2; --mut:#CF8FB0; --acc:#FF6FAE; --acc-rgb:255,111,174;
   --shell:#08090A; --panel:rgba(255,255,255,.038); --panel2:rgba(255,255,255,.055);
-  --line:rgba(255,255,255,.075); --pale:#F4F4F5; --dim:#8A8F95; --faint:#5C6167;
+  --line:rgba(255,255,255,.075); --pale:#F4F4F5; --dim:#8A8F95; --faint:#7A8087;
   --teal:#54DFC3; --amber:#FFC46B;
   --r:22px;
   --lift:0 1px 2px rgba(0,0,0,.5), 0 16px 44px -18px rgba(0,0,0,.8);
@@ -63,7 +63,7 @@ nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(8,9,10,.82
   backdrop-filter:blur(20px) saturate(140%);border-top:1px solid var(--line);
   padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
 nav .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
-nav button{padding:8px 4px;font-size:10.5px;letter-spacing:.05em;font-weight:500;color:var(--faint);
+nav button{padding:8px 4px;font-size:10.5px;letter-spacing:.05em;font-weight:500;color:var(--dim);
   display:flex;flex-direction:column;align-items:center;gap:6px;transition:color .3s ease}
 nav button.on{color:var(--pale)}
 nav svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
@@ -78,13 +78,14 @@ nav svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.6;st
 .tally b{color:var(--dim);font-weight:600}
 /* The last five weeks as a chain of squares, today at the end. A square that
    is not filled in is the reason to open the app tomorrow. */
-.chain{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;margin-top:20px}
+.chain{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:20px;max-width:260px}
 .chain i{aspect-ratio:1;border-radius:4px;background:rgba(255,255,255,.05)}
 .chain i.done{background:var(--acc)}
-.chain i.part{background:rgba(var(--acc-rgb),.38)}
+.chain i.part{background:linear-gradient(135deg,var(--acc) 50%,rgba(255,255,255,.05) 50%)}
 .chain i.miss{background:rgba(255,255,255,.018);box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
 .chain i.before{background:transparent}
-.chain i.today{box-shadow:inset 0 0 0 1.5px var(--pale)}
+.chain i.future{background:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+.chain i.today{box-shadow:inset 0 0 0 2px var(--pale)}
 .mstone{margin-top:26px;font-size:16.5px;line-height:1.6;font-weight:300;color:#E4E5E7}
 .bonus{margin-top:14px;font-size:13.5px;line-height:1.55;color:var(--faint);font-weight:300}
 .bonus b{font-weight:500;letter-spacing:.06em;text-transform:uppercase;font-size:10.5px;color:var(--dim);
@@ -133,12 +134,12 @@ details.cue b{color:var(--pale);font-weight:500;display:block}
 .status .st{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);
   display:flex;align-items:baseline;gap:7px;font-weight:500}
 .status .st b{font-size:15px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
-.iconbtn{pointer-events:auto;width:42px;height:42px;display:grid;place-items:center;border-radius:999px;color:var(--mut)}
+.iconbtn{pointer-events:auto;width:48px;height:48px;display:grid;place-items:center;border-radius:999px;color:var(--mut)}
 .iconbtn[aria-pressed="false"]{opacity:.34}
 .iconbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .field{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;
   justify-content:center;padding:82px 24px 108px;text-align:center;width:100%}
-.phase{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--mut);font-weight:500}
+.phase{font-size:21px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);font-weight:600}
 .exname{font-size:26px;line-height:1.14;margin-top:14px;max-width:18ch;color:var(--ink);font-weight:500;letter-spacing:-.022em}
 .pips{display:flex;gap:7px;justify-content:center;margin-top:18px}
 .pips i{display:block;width:24px;height:3px;border-radius:2px;background:rgba(255,255,255,.15);transition:background .3s ease}
@@ -165,13 +166,16 @@ details.cue b{color:var(--pale);font-weight:500;display:block}
 .log.on{opacity:1;visibility:visible}
 .log .top{display:flex;justify-content:space-between;align-items:baseline}
 .log .top .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:500}
-.log .top .r{font-size:16px;color:var(--teal);font-variant-numeric:tabular-nums;font-weight:500}
+.log .top .r{font-size:30px;color:var(--teal);font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:-.03em}
+.log .top{align-items:center}
+.undo{display:inline-block;margin-top:14px;padding:10px 0;font-size:14px;color:var(--dim);text-decoration:underline;text-underline-offset:3px}
 .log h2{font-size:24px;margin-top:10px;line-height:1.16;letter-spacing:-.024em}
 .log .setline{font-size:24px;line-height:1.16;font-weight:600;letter-spacing:-.024em;color:var(--dim);margin-top:2px}
 .sides{margin:auto 0 0}
 .side{margin-top:22px}
-.side .h{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.15em;
-  text-transform:uppercase;color:var(--faint);font-weight:500;margin-bottom:10px}
+.side .h{display:flex;justify-content:space-between;align-items:baseline;font-size:16px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--pale);font-weight:600;margin-bottom:10px}
+.side .h span:last-child{font-size:11px;color:var(--faint);font-weight:500}
 .side .cnt{display:flex;gap:10px;height:96px}
 .side .cnt button{flex:0 0 88px;border-radius:22px;background:var(--panel);border:1px solid var(--line);
   display:grid;place-items:center;font-size:38px;color:var(--pale);font-weight:300;transition:background .2s ease}
@@ -179,6 +183,16 @@ details.cue b{color:var(--pale);font-weight:500;display:block}
 .side .cnt .v{flex:1;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);
   border-radius:22px;font-size:52px;font-weight:700;letter-spacing:-.04em}
 #logSave{margin-top:26px}
+
+/* quit confirm, inside the session so the clock stays visible behind it */
+.quit{position:absolute;inset:0;z-index:8;background:rgba(6,7,8,.78);backdrop-filter:blur(10px);
+  display:none;align-items:flex-end}
+.quit.on{display:flex}
+.qbox{width:100%;background:#101214;border-top-left-radius:26px;border-top-right-radius:26px;
+  border:1px solid var(--line);padding:26px 22px calc(26px + env(safe-area-inset-bottom))}
+.qbox h2{font-size:24px}
+.qbox p{color:var(--dim);margin-top:8px;font-size:15px;line-height:1.5;font-weight:300}
+.qbox .go{margin-top:22px}
 
 /* done */
 .doneview{position:absolute;inset:0;z-index:7;background:#08090A;display:none;flex-direction:column;
@@ -194,10 +208,12 @@ details.cue b{color:var(--pale);font-weight:500;display:block}
 .cal .c{aspect-ratio:1;border-radius:10px;background:rgba(255,255,255,.045);display:grid;place-items:center;
   font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
 .cal .c.done{background:var(--acc);color:#2A0A1A;font-weight:600}
-.cal .c.part{background:rgba(var(--acc-rgb),.3);color:#FFD6EA}
-.cal .c.miss{background:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.13);color:#4A4E54}
+.cal .c.part{background:linear-gradient(135deg,rgba(var(--acc-rgb),.85) 50%,rgba(var(--acc-rgb),.18) 50%);color:#2A0A1A;font-weight:600}
+.cal .c.miss{background:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.13);color:var(--dim)}
 .cal .c.future{opacity:.3}
-.cal .c.today{box-shadow:inset 0 0 0 1.5px var(--pale)}
+.cal .c{position:relative;width:100%;font:inherit;font-size:11.5px}
+.cal .c.today::after{content:"";position:absolute;bottom:4px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--pale)}
+.cal .c.done.today::after,.cal .c.part.today::after{background:#2A0A1A}
 .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:11.5px;color:var(--faint);font-weight:300}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .stat{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
@@ -221,7 +237,7 @@ details.cue b{color:var(--pale);font-weight:500;display:block}
 .edrow .who small{display:block;color:var(--faint);font-size:11.5px;margin-top:2px;font-weight:300}
 .edrow input{width:60px;padding:.5rem .4rem;text-align:center;border-radius:11px;font-size:15px;
   font:inherit;color:inherit;background:var(--panel);border:1px solid var(--line);font-variant-numeric:tabular-nums}
-.edrow .x{width:34px;height:34px;display:grid;place-items:center;border-radius:999px;color:var(--faint);flex:0 0 auto}
+.edrow .x{width:44px;height:44px;display:grid;place-items:center;border-radius:999px;color:var(--faint);flex:0 0 auto}
 .edrow .x:active{background:var(--panel2)}
 .danger{display:block;width:100%;margin-top:22px;background:transparent;border:1px solid rgba(255,92,92,.3);
   color:#FF7A7A;border-radius:999px;padding:15px;font-size:14.5px;font-weight:500}
@@ -240,12 +256,12 @@ details.cue b{color:var(--pale);font-weight:500;display:block}
   <div class="app" id="app">
     <svg class="ring" id="ring" aria-hidden="true"><rect class="track"></rect><rect class="bar"></rect></svg>
     <div class="status">
-      <span class="st">Série <b id="sStreak">0</b></span>
-      <span style="display:flex;pointer-events:auto">
+      <span class="st"><b id="sStreak">0</b> <span id="sStreakL">jours</span></span>
+      <span style="display:flex;gap:12px;pointer-events:auto">
         <button class="iconbtn" id="sndBtn" aria-pressed="true" aria-label="Son">
           <svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg></button>
-        <button class="iconbtn" id="quitBtn" aria-label="Pause">
-          <svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg></button>
+        <button class="iconbtn" id="quitBtn" aria-label="Quitter la séance">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </span>
     </div>
     <button class="field" id="field">
@@ -259,19 +275,29 @@ details.cue b{color:var(--pale);font-weight:500;display:block}
     </button>
     <div class="foot">
       <div class="upnext">Ensuite<span id="nextLbl"></span></div>
-      <div class="hint" id="hint">Touche l'écran quand la série est finie · fin à <b id="endAt"></b></div>
+      <div class="hint" id="hint">Touche l'écran quand la série est finie · fin vers <b id="endAt"></b></div>
     </div>
 
     <div class="log" id="log" aria-hidden="true">
       <div class="top"><span class="t">Repos</span><span class="r mono" id="logRest">0:45</span></div>
       <h2 id="logName"></h2>
       <div class="setline" id="logSet"></div>
+      <div><button class="undo" id="logUndo">Oups, la série était pas finie</button></div>
       <div class="sides" id="sides"></div>
       <button class="go" id="logSave">Enregistrer</button>
     </div>
 
+    <div class="quit" id="quit" aria-hidden="true">
+      <div class="qbox">
+        <h2>Quitter la séance ?</h2>
+        <p id="quitNote"></p>
+        <button class="go" id="quitStay">Continuer</button>
+        <button class="editcta" id="quitGo">Quitter</button>
+      </div>
+    </div>
+
     <div class="doneview" id="doneview">
-      <span class="kick">C'est fait</span>
+      <span class="kick">C'est fait · durée</span>
       <div class="big2 mono" id="doneTime">0:00</div>
       <p id="doneNote"></p>
       <div class="ms" id="doneMs"></div>
@@ -294,7 +320,7 @@ details.cue b{color:var(--pale);font-weight:500;display:block}
       <span class="streakL" id="streakL">jours<br>de suite</span>
     </div>
     <div class="tally" id="tally"></div>
-    <div class="chain" id="chain" aria-hidden="true"></div>
+    <div class="chain" id="chain" role="img"></div>
     <div class="mstone" id="mstone"></div>
     <div class="bonus" id="bonus"></div>
     <button class="go" id="startBtn">Commence</button>
@@ -318,7 +344,7 @@ details.cue b{color:var(--pale);font-weight:500;display:block}
       <div class="cal" id="cal"></div>
       <div class="legend">
         <span><i style="background:var(--acc)"></i>Au complet</span>
-        <span><i style="background:rgba(255,111,174,.3)"></i>En partie</span>
+        <span><i style="background:linear-gradient(135deg,rgba(255,111,174,.85) 50%,rgba(255,111,174,.18) 50%)"></i>En partie</span>
         <span><i style="box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)"></i>Manqué</span>
       </div>
       <p class="muted" style="margin-top:14px;font-size:13px">Touche une journée pour la corriger, ou pour noter une séance faite sans l'app.</p>
@@ -365,7 +391,7 @@ details.cue b{color:var(--pale);font-weight:500;display:block}
         <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="edlist" id="edList"></div>
-    <button class="go" id="edManual" style="margin-top:22px">Je l'ai faite sans l'app</button>
+    <button class="go" id="edManual" style="margin-top:22px"></button>
     <button class="danger" id="edDel">Effacer cette journée</button>
   </div>
 </div>
