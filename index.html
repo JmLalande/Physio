@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="fr-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#08090A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Physio</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* work and rest keep their colours. Those are the ones that carry meaning.
+     Rest is the same teal as Loop's, work is pink so the two apps never look
+     like each other at a glance. */
+  --bg:#2E0E22; --ink:#FFE6F2; --mut:#CF8FB0; --acc:#FF6FAE; --acc-rgb:255,111,174;
+  --shell:#08090A; --panel:rgba(255,255,255,.038); --panel2:rgba(255,255,255,.055);
+  --line:rgba(255,255,255,.075); --pale:#F4F4F5; --dim:#8A8F95; --faint:#5C6167;
+  --teal:#54DFC3; --amber:#FFC46B;
+  --r:22px;
+  --lift:0 1px 2px rgba(0,0,0,.5), 0 16px 44px -18px rgba(0,0,0,.8);
+  --font:Geist,ui-sans-serif,-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--shell);color:var(--pale);font-family:var(--font);font-weight:400;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  background-image:radial-gradient(ellipse 90% 42% at 50% -6%, rgba(var(--acc-rgb),.075), transparent 62%);
+  background-attachment:fixed}
+button{font:inherit;font-family:var(--font);color:inherit;background:none;border:0;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;border:0;padding:0;height:26px}
+input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:3px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;
+  border-radius:50%;background:var(--pale);margin-top:-9.5px;border:0}
+input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:var(--line)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--pale);border:0}
+:focus-visible{outline:2px solid rgba(255,255,255,.5);outline-offset:3px}
+h1,h2,h3{font-weight:600;letter-spacing:-.021em}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ---------- shell ---------- */
+.shell{max-width:520px;margin:0 auto;padding:44px 22px calc(112px + env(safe-area-inset-bottom));min-height:100dvh}
+.page{display:none}.page.on{display:block}
+.kick{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);font-weight:500}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:22px;margin-top:16px;box-shadow:var(--lift)}
+.card h3{font-size:18px;margin-bottom:6px;font-weight:600}
+.muted{color:var(--dim);font-size:14.5px;line-height:1.62;font-weight:300}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.datagrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.datagrid .go{margin:0;width:100%}
+textarea{font:inherit;font-size:13px;width:100%;color:inherit;background:var(--panel);
+  border:1px solid var(--line);border-radius:14px;padding:.8rem .9rem;resize:vertical}
+textarea:focus{outline:none;border-color:rgba(255,255,255,.22)}
+
+nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(8,9,10,.82);
+  backdrop-filter:blur(20px) saturate(140%);border-top:1px solid var(--line);
+  padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
+nav .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+nav button{padding:8px 4px;font-size:10.5px;letter-spacing:.05em;font-weight:500;color:var(--faint);
+  display:flex;flex-direction:column;align-items:center;gap:6px;transition:color .3s ease}
+nav button.on{color:var(--pale)}
+nav svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- today ---------- */
+.hero .d{font-size:42px;line-height:1.04;margin-top:10px;font-weight:600;letter-spacing:-.03em}
+.streakbar{display:flex;align-items:baseline;gap:16px;margin-top:30px}
+.streakN{font-size:82px;line-height:.84;font-weight:700;letter-spacing:-.055em;color:var(--pale);transition:color .4s ease}
+.streakN.zero{color:var(--faint)}
+.streakL{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);font-weight:500;line-height:1.5}
+.tally{margin-top:12px;font-size:12.5px;color:var(--faint);font-weight:400;letter-spacing:.01em}
+.tally b{color:var(--dim);font-weight:600}
+/* The last five weeks as a chain of squares, today at the end. A square that
+   is not filled in is the reason to open the app tomorrow. */
+.chain{display:grid;grid-template-columns:repeat(14,1fr);gap:4px;margin-top:20px}
+.chain i{aspect-ratio:1;border-radius:4px;background:rgba(255,255,255,.05)}
+.chain i.done{background:var(--acc)}
+.chain i.part{background:rgba(var(--acc-rgb),.38)}
+.chain i.miss{background:rgba(255,255,255,.018);box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.chain i.before{background:transparent}
+.chain i.today{box-shadow:inset 0 0 0 1.5px var(--pale)}
+.mstone{margin-top:26px;font-size:16.5px;line-height:1.6;font-weight:300;color:#E4E5E7}
+.bonus{margin-top:14px;font-size:13.5px;line-height:1.55;color:var(--faint);font-weight:300}
+.bonus b{font-weight:500;letter-spacing:.06em;text-transform:uppercase;font-size:10.5px;color:var(--dim);
+  display:block;margin-bottom:4px}
+.go{display:block;width:100%;margin-top:30px;background:var(--pale);color:#0A0B0C;border-radius:999px;
+  padding:21px;font-size:17px;font-weight:600;letter-spacing:-.01em;
+  transition:transform .3s cubic-bezier(.2,.8,.3,1),background .3s ease}
+.go:active{transform:scale(.985)}
+.go.small{background:var(--panel2);color:var(--pale);font-size:14.5px;padding:13px 20px;
+  border:1px solid var(--line);font-weight:500;width:auto;margin:0}
+.donetag{display:none;margin-top:30px;text-align:center;font-size:13px;color:var(--acc);font-weight:500;letter-spacing:.02em}
+.donetag.on{display:block}
+.editcta{display:block;width:100%;margin-top:14px;background:var(--panel);border:1px solid var(--line);
+  color:var(--dim);border-radius:999px;padding:13px;font-size:13.5px;font-weight:500}
+.plan li{list-style:none;display:flex;justify-content:space-between;gap:14px;padding:12px 0;
+  border-bottom:1px solid var(--line);font-size:14.5px}
+.plan li:last-child{border-bottom:0;padding-bottom:0}
+.plan .s{color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:300}
+.plan .n{color:var(--faint);font-variant-numeric:tabular-nums;min-width:16px;flex:0 0 auto}
+.plan .nm{flex:1;min-width:0}
+details.cue{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+details.cue summary{list-style:none;cursor:pointer;font-size:12.5px;color:var(--faint);
+  font-weight:500;letter-spacing:.02em;display:flex;align-items:center;gap:7px}
+details.cue summary::-webkit-details-marker{display:none}
+details.cue summary::after{content:"";width:5px;height:5px;border-right:1.5px solid currentColor;
+  border-bottom:1.5px solid currentColor;transform:rotate(45deg);transition:transform .25s ease;margin-top:-3px}
+details.cue[open] summary::after{transform:rotate(-135deg);margin-top:2px}
+details.cue .body{margin-top:12px}
+details.cue p{font-size:13.5px;color:var(--dim);line-height:1.6;font-weight:300;margin-top:11px}
+details.cue p:first-child{margin-top:0}
+details.cue b{color:var(--pale);font-weight:500;display:block}
+.restnote{margin-top:14px;font-size:12px;color:var(--faint)}
+
+/* ---------- session ---------- */
+.sess{position:fixed;inset:0;z-index:60;display:none;background:#050506;align-items:center;justify-content:center}
+.sess.on{display:flex}
+.app{position:relative;width:min(100%,480px);height:100dvh;overflow:hidden;
+  background:var(--bg);transition:background .55s cubic-bezier(.4,0,.2,1)}
+@media(min-width:540px) and (min-height:720px){.app{height:min(100dvh,880px);border-radius:30px}}
+.ring{position:absolute;inset:0;pointer-events:none;z-index:3}
+.ring rect{fill:none;stroke:var(--acc);stroke-width:4;transition:stroke .55s ease}
+.ring rect.track{stroke:rgba(255,255,255,.07)}
+.ring.over rect.bar{stroke:var(--acc);opacity:.5}
+.status{position:absolute;top:0;left:0;right:0;z-index:4;display:flex;justify-content:space-between;
+  align-items:center;padding:calc(18px + env(safe-area-inset-top)) 22px 18px;pointer-events:none}
+.status .st{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);
+  display:flex;align-items:baseline;gap:7px;font-weight:500}
+.status .st b{font-size:15px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.iconbtn{pointer-events:auto;width:42px;height:42px;display:grid;place-items:center;border-radius:999px;color:var(--mut)}
+.iconbtn[aria-pressed="false"]{opacity:.34}
+.iconbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.field{position:absolute;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:82px 24px 108px;text-align:center;width:100%}
+.phase{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--mut);font-weight:500}
+.exname{font-size:26px;line-height:1.14;margin-top:14px;max-width:18ch;color:var(--ink);font-weight:500;letter-spacing:-.022em}
+.pips{display:flex;gap:7px;justify-content:center;margin-top:18px}
+.pips i{display:block;width:24px;height:3px;border-radius:2px;background:rgba(255,255,255,.15);transition:background .3s ease}
+.pips i.done{background:var(--mut)}.pips i.cur{background:var(--acc)}
+.setnow{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);margin-top:10px;min-height:15px}
+.big{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;font-weight:700;
+  font-size:clamp(96px,34vw,142px);line-height:.9;margin:20px 0 10px;color:var(--ink);letter-spacing:-.055em}
+.big.wide{font-size:clamp(64px,24vw,104px)}
+.target{font-size:16px;color:var(--mut);font-weight:300}
+.target b{color:var(--ink);font-weight:500}
+.cues{margin-top:16px;display:flex;flex-direction:column;gap:5px;font-size:14px;color:var(--ink);
+  opacity:.82;font-weight:300;line-height:1.4;max-width:30ch}
+.foot{position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding:0 24px calc(28px + env(safe-area-inset-bottom));text-align:center;pointer-events:none}
+.upnext{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);font-weight:500}
+.upnext span{display:block;font-size:18px;text-transform:none;color:var(--ink);margin-top:5px;font-weight:500;letter-spacing:-.018em}
+.hint{margin-top:16px;font-size:13px;color:var(--mut);font-weight:300}
+.hint b{font-variant-numeric:tabular-nums;font-weight:500;color:var(--ink)}
+
+/* log takeover */
+.log{position:absolute;inset:0;z-index:6;background:#0C0D0F;display:flex;flex-direction:column;
+  padding:calc(22px + env(safe-area-inset-top)) 22px calc(24px + env(safe-area-inset-bottom));
+  opacity:0;visibility:hidden;transition:opacity .28s ease,visibility .28s}
+.log.on{opacity:1;visibility:visible}
+.log .top{display:flex;justify-content:space-between;align-items:baseline}
+.log .top .t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:500}
+.log .top .r{font-size:16px;color:var(--teal);font-variant-numeric:tabular-nums;font-weight:500}
+.log h2{font-size:24px;margin-top:10px;line-height:1.16;letter-spacing:-.024em}
+.log .setline{font-size:24px;line-height:1.16;font-weight:600;letter-spacing:-.024em;color:var(--dim);margin-top:2px}
+.sides{margin:auto 0 0}
+.side{margin-top:22px}
+.side .h{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--faint);font-weight:500;margin-bottom:10px}
+.side .cnt{display:flex;gap:10px;height:96px}
+.side .cnt button{flex:0 0 88px;border-radius:22px;background:var(--panel);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:38px;color:var(--pale);font-weight:300;transition:background .2s ease}
+.side .cnt button:active{background:var(--panel2)}
+.side .cnt .v{flex:1;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);
+  border-radius:22px;font-size:52px;font-weight:700;letter-spacing:-.04em}
+#logSave{margin-top:26px}
+
+/* done */
+.doneview{position:absolute;inset:0;z-index:7;background:#08090A;display:none;flex-direction:column;
+  justify-content:center;padding:0 30px}
+.doneview.on{display:flex}
+.doneview .big2{font-size:72px;line-height:.9;margin-top:12px;font-variant-numeric:tabular-nums;font-weight:700;letter-spacing:-.05em}
+.doneview p{color:var(--dim);margin-top:16px;font-size:16px;line-height:1.55;font-weight:300}
+.doneview .ms{margin-top:26px;font-size:16px;line-height:1.6;color:#E4E5E7;font-weight:300}
+
+/* ---------- history ---------- */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px}
+.cal .h{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);text-align:center;font-weight:500;padding-bottom:4px}
+.cal .c{aspect-ratio:1;border-radius:10px;background:rgba(255,255,255,.045);display:grid;place-items:center;
+  font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
+.cal .c.done{background:var(--acc);color:#2A0A1A;font-weight:600}
+.cal .c.part{background:rgba(var(--acc-rgb),.3);color:#FFD6EA}
+.cal .c.miss{background:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.13);color:#4A4E54}
+.cal .c.future{opacity:.3}
+.cal .c.today{box-shadow:inset 0 0 0 1.5px var(--pale)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;font-size:11.5px;color:var(--faint);font-weight:300}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.stat{display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  padding:14px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.stat:last-child{border-bottom:0;padding-bottom:0}
+.stat .v{font-size:20px;font-variant-numeric:tabular-nums;font-weight:600;letter-spacing:-.02em;white-space:nowrap}
+.stat .v small{font-size:11.5px;color:var(--faint);font-weight:400;letter-spacing:0}
+
+/* editor sheet */
+.editor{position:fixed;inset:0;z-index:70;background:rgba(6,7,8,.72);backdrop-filter:blur(14px);
+  display:none;align-items:flex-end;justify-content:center}
+.editor.on{display:flex}
+.ed{width:100%;max-width:520px;max-height:88dvh;overflow-y:auto;background:#101214;
+  border-top-left-radius:26px;border-top-right-radius:26px;border:1px solid var(--line);
+  padding:24px 22px calc(26px + env(safe-area-inset-bottom))}
+.edtop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.edtop .iconbtn{color:var(--dim)}
+.edlist{margin-top:16px}
+.edrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.edrow .who{flex:1;min-width:0;font-size:14px}
+.edrow .who small{display:block;color:var(--faint);font-size:11.5px;margin-top:2px;font-weight:300}
+.edrow input{width:60px;padding:.5rem .4rem;text-align:center;border-radius:11px;font-size:15px;
+  font:inherit;color:inherit;background:var(--panel);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+.edrow .x{width:34px;height:34px;display:grid;place-items:center;border-radius:999px;color:var(--faint);flex:0 0 auto}
+.edrow .x:active{background:var(--panel2)}
+.danger{display:block;width:100%;margin-top:22px;background:transparent;border:1px solid rgba(255,92,92,.3);
+  color:#FF7A7A;border-radius:999px;padding:15px;font-size:14.5px;font-weight:500}
+.danger:active{background:rgba(255,92,92,.1)}
+.toast{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);background:var(--pale);color:#0A0B0C;
+  padding:12px 22px;border-radius:999px;font-size:14px;font-weight:500;z-index:80;opacity:0;
+  transition:opacity .3s ease;pointer-events:none;max-width:88vw;text-align:center;box-shadow:var(--lift)}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ SESSION ============ -->
+<div class="sess" id="sess">
+  <div class="app" id="app">
+    <svg class="ring" id="ring" aria-hidden="true"><rect class="track"></rect><rect class="bar"></rect></svg>
+    <div class="status">
+      <span class="st">Série <b id="sStreak">0</b></span>
+      <span style="display:flex;pointer-events:auto">
+        <button class="iconbtn" id="sndBtn" aria-pressed="true" aria-label="Son">
+          <svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg></button>
+        <button class="iconbtn" id="quitBtn" aria-label="Pause">
+          <svg viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></svg></button>
+      </span>
+    </div>
+    <button class="field" id="field">
+      <span class="phase" id="phaseLbl">En cours</span>
+      <span class="exname" id="exName"></span>
+      <span class="pips" id="pips"></span>
+      <span class="setnow" id="setNow"></span>
+      <span class="big mono" id="clock">0:00</span>
+      <span class="target" id="target"></span>
+      <span class="cues" id="cues"></span>
+    </button>
+    <div class="foot">
+      <div class="upnext">Ensuite<span id="nextLbl"></span></div>
+      <div class="hint" id="hint">Touche l'écran quand la série est finie · fin à <b id="endAt"></b></div>
+    </div>
+
+    <div class="log" id="log" aria-hidden="true">
+      <div class="top"><span class="t">Repos</span><span class="r mono" id="logRest">0:45</span></div>
+      <h2 id="logName"></h2>
+      <div class="setline" id="logSet"></div>
+      <div class="sides" id="sides"></div>
+      <button class="go" id="logSave">Enregistrer</button>
+    </div>
+
+    <div class="doneview" id="doneview">
+      <span class="kick">C'est fait</span>
+      <div class="big2 mono" id="doneTime">0:00</div>
+      <p id="doneNote"></p>
+      <div class="ms" id="doneMs"></div>
+      <button class="go" id="doneBtn" style="margin-top:26px">Terminé</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SHELL ============ -->
+<div class="shell">
+
+  <!-- TODAY -->
+  <section class="page on" id="p-today">
+    <div class="hero">
+      <span class="kick" id="todayDate"></span>
+      <div class="d">Physio</div>
+    </div>
+    <div class="streakbar">
+      <span class="streakN mono" id="streakN">0</span>
+      <span class="streakL" id="streakL">jours<br>de suite</span>
+    </div>
+    <div class="tally" id="tally"></div>
+    <div class="chain" id="chain" aria-hidden="true"></div>
+    <div class="mstone" id="mstone"></div>
+    <div class="bonus" id="bonus"></div>
+    <button class="go" id="startBtn">Commence</button>
+    <div class="donetag" id="doneTag">Faite aujourd'hui</div>
+    <button class="editcta" id="editToday" style="display:none"></button>
+    <div class="card">
+      <ul class="plan" id="planList"></ul>
+      <div class="restnote">45 secondes de repos entre chaque série. Chaque exercice des deux côtés.</div>
+      <details class="cue"><summary>Les consignes</summary><div class="body" id="cueList"></div></details>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="page" id="p-history">
+    <span class="kick">Chaque jour</span>
+    <h1 style="font-size:30px;margin:6px 0 4px">Historique</h1>
+    <div class="card">
+      <div class="row"><h3 id="calMonth" style="text-transform:capitalize"></h3>
+        <span><button class="go small" id="calPrev" style="display:inline-block;padding:6px 12px" aria-label="Mois précédent">←</button>
+        <button class="go small" id="calNext" style="display:inline-block;padding:6px 12px" aria-label="Mois suivant">→</button></span></div>
+      <div class="cal" id="cal"></div>
+      <div class="legend">
+        <span><i style="background:var(--acc)"></i>Au complet</span>
+        <span><i style="background:rgba(255,111,174,.3)"></i>En partie</span>
+        <span><i style="box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)"></i>Manqué</span>
+      </div>
+      <p class="muted" style="margin-top:14px;font-size:13px">Touche une journée pour la corriger, ou pour noter une séance faite sans l'app.</p>
+    </div>
+    <div class="card"><h3>Depuis le début</h3><div id="totals"></div></div>
+    <div class="card"><h3>Dernières séances</h3><div id="recent"></div></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="page" id="p-settings">
+    <span class="kick">L'app</span>
+    <h1 style="font-size:30px;margin:6px 0 4px">Réglages</h1>
+    <div class="card"><h3>Son</h3>
+      <p class="muted">Le volume des bips de fin de repos. Teste-le avec ta musique, au volume où tu t'entraînes.</p>
+      <div class="row" style="margin-top:14px;align-items:center;gap:14px">
+        <input type="range" id="volIn" min="20" max="400" step="10" value="100" style="flex:1" aria-label="Volume">
+        <button class="go small" id="volTest" style="padding:11px 18px">Tester</button></div>
+      <div class="muted mono" id="volNote" style="margin-top:8px">100 %</div>
+      <button class="go small" id="sndToggle" style="width:100%;margin-top:14px">Bips activés</button></div>
+    <div class="card"><h3>Tes données</h3>
+      <p class="muted">Gardées dans ce navigateur seulement. Exporte de temps en temps : effacer les données du site efface tout.</p>
+      <div class="datagrid">
+        <button class="go small" id="cpyBtn">Copier</button>
+        <button class="go small" id="pstBtn">Coller</button>
+        <button class="go small" id="expBtn">Exporter</button>
+        <button class="go small" id="impBtn">Importer</button></div>
+      <div id="pasteBox" style="display:none;margin-top:12px">
+        <textarea id="pasteIn" rows="4" placeholder="Colle un export ici"></textarea>
+        <button class="go small" id="pasteGo" style="width:100%;margin-top:10px">Charger</button></div>
+      <input type="file" id="impFile" accept="application/json" style="display:none"></div>
+    <div class="card"><h3>Écran</h3>
+      <p class="muted">L'écran reste allumé pendant une séance. Si ton téléphone se verrouille quand même, l'horloge continue de compter le vrai temps.</p></div>
+    <div class="card"><h3>Version</h3>
+      <p class="muted">Pour avoir une nouvelle version, ferme l'app dans tes apps récentes et rouvre-la.</p>
+      <div class="muted mono" id="verNote" style="margin-top:10px"></div></div>
+  </section>
+</div>
+
+<div class="editor" id="editor">
+  <div class="ed">
+    <div class="edtop">
+      <div><div class="kick" id="edDate"></div><h2 id="edTitle" style="font-size:24px;margin-top:5px"></h2></div>
+      <button class="iconbtn" id="edClose" aria-label="Fermer">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="edlist" id="edList"></div>
+    <button class="go" id="edManual" style="margin-top:22px">Je l'ai faite sans l'app</button>
+    <button class="danger" id="edDel">Effacer cette journée</button>
+  </div>
+</div>
+
+<nav><div class="in">
+  <button class="on" data-go="today"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>Aujourd'hui</button>
+  <button data-go="history"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/></svg>Historique</button>
+  <button data-go="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 8.9 19a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 5 8.9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9.5a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Réglages</button>
+</div></nav>
+
+<div class="toast" id="toast"></div>
+
+<script src="./program.js"></script>
+<script src="./facts.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
